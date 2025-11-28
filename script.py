@@ -104,6 +104,12 @@ def make_move(game_state):
     mymap = Map(sea_size, islands, barrels)
     next_target = mymap.get_next_target(ship_pos)
 
+    # TODO :
+    # - déterminer la meilleur prochaine position par rapport à la courante, à la target et à la xième suivante
+    # - améliorer le get_next_target
+    # - prendre en compte les barrels
+    # - passer de la data pour réduire les calculs initiaux
+
     # Compute next position based on current position, velocity magnitude, and angle
     # next_position = compute_next_position(your_ship['position'], your_ship['velocity'], your_ship['angle'])
     # next_pos = (next_position['x'], next_position['y'])
