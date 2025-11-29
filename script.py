@@ -42,16 +42,16 @@ class Island:
         self.validated = island["validated"]
 
     def target(self) -> Point:
-        if type == 1:
+        if self.type == 1:
             return Point(self.x + self.radius + 1, self.y)
-        elif type == 2:
+        elif self.type == 2:
             return Point(self.x, self.y + self.radius + 1)
-        elif type == 3:
+        elif self.type == 3:
             return Point(self.x - self.radius - 1, self.y)
-        elif type == 4:
+        elif self.type == 4:
             return Point(self.x, self.y - self.radius - 1)
         else:
-            raise Exception(f"Invalid type {type}")
+            raise Exception(f"Invalid type {self.type}")
 
     def get_coordinate_1(self, size) -> int:
         return self.x + (self.y * size)
@@ -101,6 +101,7 @@ class Map:
 
 
 def make_move(game_state):
+    print('beginning 1')
     your_ship = game_state['your_ship']
     temp_islands = game_state['islands']
     barrels = game_state['barrels']
@@ -111,10 +112,11 @@ def make_move(game_state):
     for island in temp_islands:
         islands.append(Island(island))
     ship_pos = Point(your_ship['position']['x'], your_ship['position']['y'])
-
+    print('beginning 2 ship & island done')
     mymap = Map(sea_size, islands, barrels)
+    print('beginning 3 map done')
     next_target = mymap.get_next_target(ship_pos)
-
+    print('beginning 4 next target')
     # TODO :
     # - déterminer la meilleur prochaine position par rapport à la courante, à la target et à la xième suivante
     # - améliorer le get_next_target
@@ -202,25 +204,21 @@ def make_move(game_state):
     }
 
 
-def compute_next_position(current_pos, velocity, angle):
-    """Compute next position using velocity magnitude and angle direction"""
-    import math
-
-    # Calculate current speed (magnitude of velocity vector)
-    current_speed = math.sqrt(velocity['x'] ** 2 + velocity['y'] ** 2)
-
-    # Convert angle from degrees to radians
-    angle_rad = math.radians(angle)
-
-    # Compute velocity components based on angle and speed
-    vx = current_speed * math.cos(angle_rad)
-    vy = current_speed * math.sin(angle_rad)
-
-    return {
-        'x': current_pos['x'] + vx,
-        'y': current_pos['y'] + vy
-    }
-
+# def compute_next_position(current_pos, velocity, angle):
+#     # Calculate current speed (magnitude of velocity vector)
+#     current_speed = math.sqrt(velocity['x'] ** 2 + velocity['y'] ** 2)
+#
+#     # Convert angle from degrees to radians
+#     angle_rad = math.radians(angle)
+#
+#     # Compute velocity components based on angle and speed
+#     vx = current_speed * math.cos(angle_rad)
+#     vy = current_speed * math.sin(angle_rad)
+#
+#     return {
+#         'x': current_pos['x'] + vx,
+#         'y': current_pos['y'] + vy
+#     }
 
 def difference(p1, p2) -> int:
     return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
@@ -229,28 +227,30 @@ def difference(p1, p2) -> int:
 def difference_obj(p1, p2) -> int:
     return abs(p1.x - p2.x) + abs(p1.y - p2.y)
 
-make_move(
-{
-    "islands": [
-        {
-            "position": {"x": 400, "y": 300},
-            "radius": 5,
-            "type": 1,
-            "validated": False
-        }
-    ],
-    "barrels": [
-        {
-            "position": {"x": 200, "y": 150},
-            "radius": 10,
-            "collected": False
-        }
-    ],
-    "your_ship": {
-        "position": {"x": 100, "y": 100},
-        "velocity": {"x": 2.5, "y": -1.2},
-        "angle": 45
-    },
-    "sea_size": 1000,
-    "data": "your_persistent_data_string"
-})
+
+# game_state = {
+#     "islands": [
+#         {
+#             "position": {"x": 400, "y": 300},
+#             "radius": 5,
+#             "type": 1,
+#             "validated": False
+#         }
+#     ],
+#     "barrels": [
+#         {
+#             "position": {"x": 200, "y": 150},
+#             "radius": 10,
+#             "collected": False
+#         }
+#     ],
+#     "your_ship": {
+#         "position": {"x": 100, "y": 100},
+#         "velocity": {"x": 2.5, "y": -1.2},
+#         "angle": 45
+#     },
+#     "sea_size": 1000,
+#     "data": "your_persistent_data_string"
+# }
+#
+# make_move(game_state)
