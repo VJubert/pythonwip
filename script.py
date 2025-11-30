@@ -1,6 +1,6 @@
 import math
 
-# TODO PAS PLUS DE 30 STEPS SUR LE MÊME OBJECTIF
+
 # (les barrels pris par les adversaires sont toujours collected: False)
 def make_move(game_state):
     ship = game_state['your_ship']
@@ -8,21 +8,38 @@ def make_move(game_state):
     ship_velocity = ship['velocity']
     current_data = game_state['data']
 
+    print(current_data)
+    # Parse current_data: split on ';' and parse second part as comma-separated integers
+    exclude_barrels = []
+    if (current_data is not None) and (current_data != ';') and (current_data != ''):
+        data_parts = current_data.split(';')
+        if data_parts[1] is not None:
+            for dp in data_parts[1].split(','):
+                if dp != '':
+                    exclude_barrels.append(int(dp))
+        if (data_parts[0] is not None) and (data_parts[0] != ''):
+            pos = data_parts[0].split(':')
+            target = {'x': int(pos[0]), 'y': int(pos[1])}
+            distance_to_barrel = get_distance(ship_pos, target)
+            collection_radius = 5
+            if distance_to_barrel <= collection_radius:
+                exclude_barrels.append(int(pos[2]))
+
     # Find all uncollected barrels first
     targets = []
 
     # Add uncollected barrels
+    index = 0
     for barrel in game_state['barrels']:
         distance = get_distance(barrel['position'], ship_pos)
-        if distance < 300 and not barrel['collected']:
-            collected = barrel['collected']
-            barrel_pos = barrel['position']
-            print(f'{barrel}')
+        if distance < 250 and (index not in exclude_barrels) and (not barrel['collected']):
             targets.append({
                 'position': barrel['position'],
                 'type': 'barrel',
-                'distance': distance
+                'distance': distance,
+                'index': index,
             })
+        index += 1
 
     # If no barrels left, go for islands
     if not targets:
@@ -69,7 +86,7 @@ def make_move(game_state):
     # Calculate current speed
     current_speed = math.sqrt(ship_velocity['x'] ** 2 + ship_velocity['y'] ** 2)
 
-    margin = 5
+    margin = 10
 
     # For islands, add margin to avoid collision
     if closest_target['type'] == 'island':
@@ -108,37 +125,31 @@ def make_move(game_state):
         angle_diff -= 360
 
     # Determine acceleration based on distance and alignment
-    is_aligned = abs(angle_diff) < 20  # Are we pointing roughly at target?
+    is_aligned = abs(angle_diff) < 30  # Are we pointing roughly at target?
+    print(str(is_aligned))
 
-    if is_aligned:
-        acceleration = 100
-    else:
-        if min_distance < 25:
-            # Very close - slow down significantly
-            if current_speed < 1.5:
-                acceleration = 30
-            else:
-                acceleration = -60
-        elif min_distance < 60:
-            # Medium distance - moderate speed, but only if aligned
-            if not is_aligned:
-                acceleration = -40  # Brake to turn better
-            elif current_speed > 4:
-                acceleration = -30
-            else:
-                acceleration = 40
-        elif min_distance < 150:
-            # Getting closer - speed up if aligned
-            if is_aligned:
-                acceleration = 70
-            else:
-                acceleration = 80
+    if min_distance < 25:
+        # Very close - slow down significantly
+        if current_speed < 1.5 or is_aligned:
+            acceleration = 30
         else:
-            # Far - full speed if aligned
-            if is_aligned:
-                acceleration = 100
-            else:
-                acceleration = 100
+            acceleration = -80
+    elif min_distance < 60:
+        # Medium distance - moderate speed, but only if aligned
+        if not is_aligned:
+            acceleration = -40  # Brake to turn better
+        elif current_speed > 4:
+            acceleration = -30
+        else:
+            acceleration = 40
+    elif min_distance < 150:
+        # Getting closer - speed up if aligned
+        if is_aligned:
+            acceleration = 95
+        else:
+            acceleration = 50
+    else:
+        acceleration = 100
 
     # Adaptive turning - turn faster when far, slower when close
     if min_distance < 40:
@@ -151,9 +162,21 @@ def make_move(game_state):
     else:
         new_angle = target_angle
 
+    next_data = ""
+    if closest_target['type'] == 'barrel':
+        next_data += str(closest_target["position"]["x"])
+        next_data += ':'
+        next_data += str(closest_target["position"]["y"])
+        next_data += ':'
+        next_data += str(closest_target["index"])
+    next_data += ";"
+    for eb in exclude_barrels:
+        next_data += str(eb) + ','
+
     return {
         'acceleration': acceleration,
         'angle': int(new_angle),
+        'data': next_data,
     }
 
 
